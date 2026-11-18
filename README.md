@@ -4,6 +4,13 @@
 
 A Godot .NET and C# port of Abyssal Garden, a procedural underwater world with kelp forests, a wreck, manta rays, and volumetric sunlight. The port is based on Maksymilian Dendura’s original WebGPU demo. [Upstream repository](https://github.com/Noniv/abyssal-garden) · [Browser demo](https://noniv.github.io/abyssal-garden/)
 
+![Stone whale fluke among the kelp](docs/screenshots/whale-fluke.webp)
+
+<p>
+  <a href="docs/screenshots/shipwreck.webp"><img src="docs/screenshots/shipwreck.webp" width="49%" alt="Sunken ship wedged between canyon walls"></a>
+  <a href="docs/screenshots/grotto.webp"><img src="docs/screenshots/grotto.webp" width="49%" alt="Purple grotto lit by shafts of sunlight"></a>
+</p>
+
 ## Run the Godot project
 
 ```powershell

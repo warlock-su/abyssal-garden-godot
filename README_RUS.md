@@ -4,6 +4,13 @@
 
 Порт Abyssal Garden на Godot .NET и C#. Это процедурный подводный мир с лесами ламинарии, затонувшим кораблём, мантами и объёмными световыми лучами. Порт основан на браузерном демо Максимилиана Дендуры (Noniv). [Оригинальный репозиторий](https://github.com/Noniv/abyssal-garden) · [Браузерная версия](https://noniv.github.io/abyssal-garden/)
 
+![Каменный хвост кита среди ламинарии](docs/screenshots/whale-fluke.webp)
+
+<p>
+  <a href="docs/screenshots/shipwreck.webp"><img src="docs/screenshots/shipwreck.webp" width="49%" alt="Затонувший корабль между стенами каньона"></a>
+  <a href="docs/screenshots/grotto.webp"><img src="docs/screenshots/grotto.webp" width="49%" alt="Фиолетовый грот в лучах света"></a>
+</p>
+
 ## Запуск проекта
 
 ```powershell
