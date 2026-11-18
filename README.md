@@ -1,106 +1,70 @@
-# Abyssal Garden
+# Abyssal Garden · Godot
 
-**A dreamy underwater world you can swim through, right in your browser.**
+[Читать на русском](README_RUS.md)
 
-Towering kelp forests, sunbeams pouring through a rippling surface, a sunken ship, manta rays gliding overhead.
-And all of it is made by code: no images, no 3D models, no sound files. The whole world fits in **one 96 KB HTML file**.
+A Godot .NET and C# port of Abyssal Garden, a procedural underwater world with kelp forests, a wreck, manta rays, and volumetric sunlight. The port is based on Maksymilian Dendura’s original WebGPU demo. [Upstream repository](https://github.com/Noniv/abyssal-garden) · [Browser demo](https://noniv.github.io/abyssal-garden/)
 
-![Kelp forest with a stone whale tail and a manta ray](.github/screenshots/whale-fluke.jpg)
+## Run the Godot project
 
-## Try it
+Generate the world data and shaders with Node.js 24 and a WebGPU-capable GPU. The fork includes the original generator in `source/`.
 
-1. Download [`index.html`](index.html).
-2. Open it in **Chrome** or **Edge** on a desktop computer.
-3. Wait a few seconds while the world is built, then press **Dive in** and start swimming.
-
-Nothing to install, and it works offline. It needs a browser with **WebGPU**. If you see *"This scene needs WebGPU"*, update your browser or switch to Chrome / Edge.
-
-## What's down there
-
-- **Kelp forests** that sway in the current and sparkle with tiny gold and green specks
-- **Light rays** streaming down from a wavy surface, with shimmering caustics on the sea floor
-- **A sunken wooden ship**, a **giant stone whale tail**, rock arches, canyons and floating boulders
-- **Manta rays**, schools of fish, rising bubbles and drifting particles
-- **A purple grotto** with glowing magenta ground cover, coral and barrel sponges
-- **A soundscape** made up as you listen: a deep rumble, distant whale calls, soft chimes and bubbles
-
-| | |
-|---|---|
-| ![Shipwreck](.github/screenshots/shipwreck.jpg) | ![Looking up through the kelp](.github/screenshots/kelp-forest.jpg) |
-| ![Barrel sponges](.github/screenshots/sponge-garden.jpg) | ![Light rays over the kelp basin](.github/screenshots/light-rays.jpg) |
-
-![The purple grotto](.github/screenshots/purple-grotto.jpg)
-
-## Controls
-
-| | Keyboard & mouse |
-|---|---|
-| Look around | Move the mouse |
-| Swim | `W` `A` `S` `D` |
-| Up / down | `E` / `Q` |
-| Swim faster | Hold `Shift` |
-| Jump to a viewpoint | `1` to `6` (the spots in the screenshots) |
-| Menu | `Esc` releases the mouse and opens the menu with the list of controls; **Resume** takes you back |
-| Sound on / off | `M` (sound starts when you dive in) |
-| Performance stats | `H` |
-| Detail level | **Low**, **Medium** or **High** in the menu (reloads the page) |
-
-The seabed, cliffs and arches are solid: you glide along the rock instead of swimming into it, and you still fit through every tunnel and arch. Kelp, plants, corals, sponges, loose rocks, the floating boulders, the ship and the whale tail you can swim through.
-
-**On a touchscreen:** hold one finger down to swim forward and slide it to steer. Put a second finger down to go faster. The `≡` button in the corner opens the menu. Phones always show the scene in landscape and start on Low or Medium detail. (Touch support is experimental.)
-
-## Detail levels
-
-The **Low**, **Medium** and **High** buttons in the menu pick the detail level; the current one is lit. Each level is the same world, built with less in it:
-
-| Level | What it is | Picked on a first visit for |
-|---|---|---|
-| **High** | The full scene | Computers |
-| **Medium** | Half of the leaves, sparkles and pebbles; small rocks, sponges and corals cast no shadows | Phones with 8 GB of memory |
-| **Low** | A quarter of the leaves, no anti-aliasing, coarser rocks and corals, simpler lighting, 480p to start with | Other phones, and computers with 4 GB of memory or less |
-
-If loading crashes the tab, or the graphics driver gives up, the page starts again one level lower. Your browser remembers the level, and the resolution and draw distance the scene settled on, for the next visit.
-
-## How it works
-
-- The seabed is sculpted on your graphics card every time the page opens, then decorated with about two million kelp leaves and plants, tens of thousands of rocks, and thousands of sponges, corals and fish.
-- Everything is drawn with **WebGPU** directly. No game engine or 3D library is used.
-- The ship, whale tail, mantas, fish and corals are built from simple mathematical shapes.
-- The sound is synthesized live with the Web Audio API.
-- It's built to run smoothly: about 180 fps at 2560×1440 on an RTX 5070 Ti. On slower hardware it aims for 60 fps by lowering first the resolution and then how far away plants and rocks are drawn, in small steps. The scene is already running, blurred, behind the start menu, so most of that tuning is done before you dive in. A low-end phone (Samsung Galaxy A16) reaches about 20 fps at 670×372 on Low.
-
-## Make it your own
-
-The readable source code is in the [`source`](source) folder. To change something and rebuild `index.html` you need [Node.js](https://nodejs.org) 18 or newer:
-
-```bash
-cd source
-npm install
-npm run build
+```powershell
+git clone https://github.com/warlock-su/abyssal-garden-godot.git
+cd abyssal-garden-godot
+npm install --prefix .godot/port-tools --no-audit --no-fund naga-wasi-cli@0.1.0 webgpu@0.6.2
+node tools/bake-abyssal.mjs . .godot/port-tools/node_modules
 ```
 
-This writes a new `index.html` next to this README. `npm run build:readable` writes an unminified version instead, which is easier to debug in the browser's developer tools.
+Open `project.godot` in Godot **4.8 beta 3 .NET** with the **.NET 10 SDK** and press **F5**. The tested desktop configuration is Windows with Forward+ and Vulkan. [Godot downloads](https://godotengine.org/download/archive/4.8-beta3/)
 
-`npm run build:dev` writes a separate `dev.html` with two extra tools that are not part of `index.html`: `F` flies the camera along a one-minute path through the whole world, and `B` runs that flight as a benchmark and reports frame and GPU times.
+The main and pause menus offer Russian and English, window presets, and three detail levels. The rendered image follows the window’s client area pixel for pixel. To test window presets from the editor, run the game in a separate window. [Godot game embedding](https://docs.godotengine.org/en/stable/tutorials/editor/game_embedding.html)
 
-| File | What's inside |
-|---|---|
-| [`source/src/world.js`](source/src/world.js) | The world layout: rock walls, arches, tunnels, kelp forests, sponge gardens, fish schools, mantas, the ship and the whale tail. **A good place to start.** |
-| [`source/src/shaders.js`](source/src/shaders.js) | The look: water and fog colors, lighting, kelp, rocks, the water surface and light rays (WGSL shader code) |
-| [`source/src/main.js`](source/src/main.js) | The renderer, the camera, the controls, the six viewpoints and the camera path the world is laid out around |
-| [`source/src/audio.js`](source/src/audio.js) | The soundscape |
-| [`source/src/quality.js`](source/src/quality.js) | The detail levels: which one a device starts on, and what is remembered between visits |
-| [`source/src/math.js`](source/src/math.js) | Noise, random numbers and mesh-building helpers |
-| [`source/src/dev.js`](source/src/dev.js) | Development tools (fly-through and benchmark), only in `dev.html` |
-| [`source/template.html`](source/template.html) | The page around the scene: loading bar, start menu, links and their styles |
+| Input | Action |
+| --- | --- |
+| Mouse, WASD | Look and swim |
+| E / Q, Shift | Rise, sink, and swim faster |
+| 1–6 | Jump to a viewpoint |
+| Esc, M, H | Pause, mute, and show detailed statistics |
+| F, B | Guided route and 60-second benchmark |
 
-Some easy first tweaks:
+For a Windows x64 build, install the matching **.NET export templates** and use the **Windows Desktop** preset. Run `build/windows/AbyssalGarden.exe` with its PCK and .NET data directory beside it.
 
-- **Water color:** `WCOL` (blue-green water) and `PCOL` (purple grotto) near the top of the shared scene code in `shaders.js`
-- **Sunlight color:** `SUNC` right next to them
-- **Brightness and light rays:** `EXPO` and `RAYS` in `main.js`
-- **Swimming speed:** search for `26 : 7` in `main.js` (fast speed : normal speed)
+## Rendering and benchmarks
 
-## License
+Godot’s `RenderingDevice` draws instanced geometry with spatial culling and LOD. Separate GPU passes handle shadows, animated water and caustics, light shafts, and bloom. The original WGSL is compiled to SPIR-V. The camera, collision, audio synthesis, UI, and render pipeline run in C#. The three world profiles are baked from the upstream generator.
 
-[MIT](LICENSE): free to use, change and share, including in your own projects.
+The table shows **mean / p99** times in milliseconds for the same 60-second route on an RTX 5090 at High. Chrome 157 ran WebGPU and Godot 4.8 beta 3 ran Vulkan. At 2560×1440 Godot rendered a full-size buffer and presented it in a 1280×720 window.
+
+| Render resolution | Chrome frame | Godot frame | Chrome GPU | Godot GPU |
+| --- | ---: | ---: | ---: | ---: |
+| 1280×720 | 1.60 / 2.00 | 1.56 / 1.85 | 1.58 / 1.90 | 1.54 / 1.82 |
+| 2560×1440 | 2.52 / 3.10 | 2.34 / 2.78 | 2.50 / 2.97 | 2.32 / 2.75 |
+
+Across six fixed views at 1280×720 High, SSIM ranged from **0.99138 to 0.99725**, and mean absolute RGB error ranged from **0.160 to 0.364** per channel out of 255.
+
+```powershell
+New-Item -ItemType Directory -Force .godot/abyssal-comparison
+godot-mono --path . --resolution 1280x720 --disable-vsync --audio-driver Dummy -- --quality=0 --benchmark
+godot-mono --path . --resolution 1280x720 --disable-vsync --audio-driver Dummy -- --quality=0 --render-size=2560x1440 --benchmark
+godot-mono --path . --resolution 1280x720 -- --quality=0 '--capture=.godot/abyssal-comparison/godot-0-{view}.png'
+```
+
+Replace `godot-mono` with your Godot .NET executable. `--render-size` sets an explicit render buffer size for comparison. `{view}` saves all six camera views at animation time zero. Run the Godot and Chrome benchmarks separately.
+
+To capture the browser reference and reproduce the image and performance comparisons, run the following commands after generating the Godot captures.
+
+```powershell
+npm install --prefix .godot/port-tools --no-audit --no-fund playwright-core pngjs@7.0.0
+$chromePath = 'C:/Program Files/Google/Chrome/Application/chrome.exe'
+node tools/measure-reference.mjs . .godot/port-tools/node_modules $chromePath 1280x720 0 capture
+node tools/compare-frames.mjs .godot/port-tools/node_modules .godot/abyssal-comparison/reference-0-1.png .godot/abyssal-comparison/godot-0-1.png
+node tools/measure-reference.mjs . .godot/port-tools/node_modules $chromePath 1280x720 0 benchmark
+```
+
+## Generated resources
+
+The bake command builds High, Medium, and Low by default. Pass `0`, `1`, or `2` for a single profile, or `--shaders-only` for SPIR-V. Generated files stay local in `assets/abyssal/`. [Original revision](https://github.com/Noniv/abyssal-garden/tree/a596354eff400d458bc2aeb9bdf5e0a9734b2bcf)
+
+## Credits and license
+
+Original world, generator, and shaders by Maksymilian Dendura (Noniv). Godot port by Warlock Su. This fork preserves the original MIT copyright and permission notice in [LICENSE](LICENSE). The world data carries the same notice in [assets/abyssal/LICENSE.txt](assets/abyssal/LICENSE.txt). [Original project](https://github.com/Noniv/abyssal-garden)
