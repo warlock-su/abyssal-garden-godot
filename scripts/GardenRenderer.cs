@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Runtime.InteropServices;
 using Godot;
 using RD = Godot.RenderingDevice;
@@ -225,14 +224,8 @@ internal sealed partial class GardenRenderer : IDisposable
 
     private void LoadShaders()
     {
-        var asset = Godot.FileAccess.GetFileAsBytes($"res://assets/abyssal/shaders-{_quality}.bin");
-        using var reader = new BinaryReader(new MemoryStream(asset, writable: false));
-        int count = reader.ReadInt32();
-        for (int i = 0; i < count; i++)
+        foreach (var (name, vertex, fragment) in GardenShaders.ForQuality(_quality))
         {
-            string name = System.Text.Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
-            byte[] vertex = reader.ReadBytes(reader.ReadInt32());
-            byte[] fragment = reader.ReadBytes(reader.ReadInt32());
             using var spirv = new RDShaderSpirV { BytecodeVertex = vertex, BytecodeFragment = fragment };
             Rid rid = Track(_rd.ShaderCreateFromSpirV(spirv, $"Garden: {name}"), _static, name);
             _shaders.Add(name, new(rid, BindingsIn(vertex) | BindingsIn(fragment)));

@@ -202,7 +202,7 @@ public partial class Garden
         _loadStage = stage;
         _status.Text = stage switch
         {
-            LoadStage.World => Localize("Loading the underwater world…", "Загрузка подводного мира…"),
+            LoadStage.World => Localize("Generating the underwater world…", "Создание подводного мира…"),
             LoadStage.Lighting => Localize("Preparing light and water…", "Подготовка освещения и воды…"),
             LoadStage.Ready => Localize(
                 "WASD swim · E/Q up/down · Shift sprint\n1–6 viewpoints · M sound · H stats · Esc pause\nF guided swim · B benchmark",

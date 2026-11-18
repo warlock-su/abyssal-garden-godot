@@ -1,7 +1,4 @@
 using System;
-using System.IO;
-using System.IO.Compression;
-using System.Runtime.InteropServices;
 using Godot;
 
 internal sealed class GardenWorld
@@ -9,7 +6,7 @@ internal sealed class GardenWorld
     public const int Cells = 16;
     public const int CellSize = 24;
     public const int Origin = -192;
-    private const int CollisionWidth = 102;
+    public const int CollisionWidth = 102;
     private const int CollisionHeight = 20;
 
     public readonly record struct MeshRange(int Vertex, int Index, int Count);
@@ -25,61 +22,40 @@ internal sealed class GardenWorld
     public byte[] TerrainIndices { get; private set; }
     public byte[] MeshVertices { get; private set; }
     public byte[] MeshIndices { get; private set; }
-    public MeshRange[] Meshes { get; } = new MeshRange[26];
+    public MeshRange[] Meshes { get; }
     public byte[] Solids { get; private set; }
-    public InstanceRange[] SolidRanges { get; } = new InstanceRange[12];
+    public InstanceRange[] SolidRanges { get; }
     public CellsData TerrainCells { get; }
-    public Batch[] Batches { get; } = new Batch[16];
-    public byte[][] Animated { get; } = new byte[5][];
+    public Batch[] Batches { get; }
+    public byte[][] Animated { get; }
     public byte[] Density { get; private set; }
     public byte[] SurfaceMap { get; private set; }
     private readonly ushort[] _collisionIndex;
     private readonly sbyte[] _collisionGrid;
 
-    public GardenWorld(int quality)
+    public GardenWorld(View[] views, View[] flight, float[] flightLengths,
+        byte[] terrainVertices, byte[] terrainIndices, CellsData terrainCells,
+        byte[] meshVertices, byte[] meshIndices, MeshRange[] meshes,
+        byte[] solids, InstanceRange[] solidRanges, Batch[] batches, byte[][] animated,
+        byte[] density, byte[] surfaceMap, ushort[] collisionIndex, sbyte[] collisionGrid)
     {
-        using var stream = OpenWorld(quality);
-        using var gzip = new GZipStream(stream, CompressionMode.Decompress);
-        using var reader = new BinaryReader(gzip);
-        if (reader.ReadUInt32() != 0x31594241)
-            throw new InvalidDataException("Unrecognized Abyssal Garden world format.");
-
-        Views = ReadViews(reader);
-        Flight = ReadViews(reader);
-        FlightLengths = ReadArray<float>(reader);
-        TerrainVertices = ReadBlock(reader);
-        TerrainIndices = ReadBlock(reader);
-        MeshVertices = ReadBlock(reader);
-        MeshIndices = ReadBlock(reader);
-        var meshes = ReadArray<int>(reader);
-        for (int i = 0; i < Meshes.Length; i++)
-            Meshes[i] = new(meshes[3 * i], meshes[3 * i + 1], meshes[3 * i + 2]);
-        Solids = ReadBlock(reader);
-        var ranges = ReadArray<int>(reader);
-        for (int i = 0; i < SolidRanges.Length; i++)
-            SolidRanges[i] = new(ranges[2 * i], ranges[2 * i + 1]);
-        TerrainCells = ReadCells(reader);
-        for (int i = 0; i < Batches.Length; i++)
-            Batches[i] = new(ReadBlock(reader), ReadCells(reader));
-        for (int i = 0; i < Animated.Length; i++)
-            Animated[i] = ReadBlock(reader);
-        Density = ReadBlock(reader);
-        SurfaceMap = ReadBlock(reader);
-        _collisionIndex = ReadArray<ushort>(reader);
-        _collisionGrid = ReadArray<sbyte>(reader);
-    }
-
-    private static Stream OpenWorld(int quality)
-    {
-        string resource = $"res://assets/abyssal/world-{quality}.gz";
-        string file = ProjectSettings.GlobalizePath(resource);
-        if (File.Exists(file))
-            return new FileStream(file, FileMode.Open, System.IO.FileAccess.Read, FileShare.Read, 65536,
-                FileOptions.SequentialScan);
-        byte[] data = Godot.FileAccess.GetFileAsBytes(resource);
-        if (data.Length == 0)
-            throw new IOException($"Missing world data for quality {quality}.");
-        return new MemoryStream(data, writable: false);
+        Views = views;
+        Flight = flight;
+        FlightLengths = flightLengths;
+        TerrainVertices = terrainVertices;
+        TerrainIndices = terrainIndices;
+        TerrainCells = terrainCells;
+        MeshVertices = meshVertices;
+        MeshIndices = meshIndices;
+        Meshes = meshes;
+        Solids = solids;
+        SolidRanges = solidRanges;
+        Batches = batches;
+        Animated = animated;
+        Density = density;
+        SurfaceMap = surfaceMap;
+        _collisionIndex = collisionIndex;
+        _collisionGrid = collisionGrid;
     }
 
     public void ReleaseUploadData()
@@ -116,32 +92,4 @@ internal sealed class GardenWorld
             _collisionGrid[(brick - 2) * 64 + (x & 3) + 4 * (y & 3) + 16 * (z & 3)];
     }
 
-    private static View[] ReadViews(BinaryReader reader)
-    {
-        var values = ReadArray<float>(reader);
-        var views = new View[values.Length / 6];
-        for (int i = 0; i < views.Length; i++)
-        {
-            int o = 6 * i;
-            views[i] = new(new(values[o], values[o + 1], values[o + 2]),
-                new(values[o + 3], values[o + 4], values[o + 5]));
-        }
-        return views;
-    }
-
-    private static CellsData ReadCells(BinaryReader reader) =>
-        new(ReadArray<int>(reader), ReadArray<float>(reader), ReadArray<float>(reader));
-
-    private static T[] ReadArray<T>(BinaryReader reader) where T : unmanaged =>
-        MemoryMarshal.Cast<byte, T>(ReadBlock(reader)).ToArray();
-
-    private static byte[] ReadBlock(BinaryReader reader)
-    {
-        int size = reader.ReadInt32();
-        if (size < 0 || size > 256 * 1024 * 1024)
-            throw new InvalidDataException($"Invalid world block size {size}.");
-        var data = GC.AllocateUninitializedArray<byte>(size);
-        reader.BaseStream.ReadExactly(data);
-        return data;
-    }
 }

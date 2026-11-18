@@ -7,12 +7,14 @@ using Godot;
 public partial class Garden : Node3D
 {
     private readonly DiveCamera _camera = new();
+    private readonly CancellationTokenSource _generationCancellation = new();
     private readonly Texture2Drd _texture = new();
     private readonly List<double> _frameTimes = new();
     private readonly List<double> _gpuTimes = new();
     private RenderingDevice _device;
     private GardenRenderer _renderer;
     private GardenWorld _world;
+    private Task<GardenWorld> _worldGeneration;
     private Label _hud;
     private Label _fpsCounter;
     private int _quality;
@@ -85,7 +87,9 @@ public partial class Garden : Node3D
             button.Disabled = true;
         try
         {
-            GardenWorld world = await Task.Run(() => new GardenWorld(quality));
+            CancellationToken cancellation = _generationCancellation.Token;
+            _worldGeneration = Task.Run(() => GardenGenerator.Generate(quality, cancellation), cancellation);
+            GardenWorld world = await _worldGeneration;
             if (_exiting)
                 return;
             _world = world;
@@ -109,8 +113,13 @@ public partial class Garden : Node3D
                 }
             }));
         }
+        catch (OperationCanceledException) when (_exiting)
+        {
+        }
         catch (Exception error)
         {
+            if (_exiting)
+                return;
             GD.PushError(error.ToString());
             Fail(LoadStage.Failed);
         }
@@ -395,6 +404,17 @@ public partial class Garden : Node3D
     public override void _ExitTree()
     {
         _exiting = true;
+        _generationCancellation.Cancel();
+        // Keep the rendering server alive until the generation worker frees its local device.
+        try
+        {
+            _worldGeneration?.GetAwaiter().GetResult();
+        }
+        catch (Exception)
+        {
+            // LoadQuality handles generation failures while this node is active.
+        }
+        _generationCancellation.Dispose();
         SaveWindowSettings();
         _audio?.Dispose();
         _audio = null;
